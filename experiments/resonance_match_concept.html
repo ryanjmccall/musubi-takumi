@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbolic Resonance Architecture // Protocol v1</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --panel: #161616;
+            --cyan: #00ffff;
+            --magenta: #ff00ff;
+            --fire: #ff4500;
+            --text: #e0e0e0;
+            --dim: #666;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: "SF Mono", "Fira Code", Consolas, monospace;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            width: 100%;
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 {
+            font-weight: 200;
+            letter-spacing: 2px;
+            margin: 0;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+        }
+
+        .subtitle {
+            color: var(--dim);
+            font-size: 0.8rem;
+            font-family: var(--font-mono);
+            margin-top: 0.5rem;
+        }
+
+        /* Main Container */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            max-width: 1200px;
+            width: 90%;
+            padding: 2rem 0;
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--panel);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .panel-header {
+            font-family: var(--font-mono);
+            color: var(--cyan);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* 3x3 Grid */
+        .grid-3x3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .grid-item {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #222;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            border: 1px solid transparent;
+        }
+
+        .grid-item:hover {
+            background: #333;
+            transform: scale(1.05);
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+        }
+
+        /* Tooltip for Frequencies */
+        .grid-item::after {
+            content: attr(data-freq);
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 0.6rem;
+            font-family: var(--font-mono);
+            color: var(--dim);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .grid-item:hover::after { opacity: 1; color: var(--cyan); }
+
+        /* Vis Section */
+        canvas {
+            width: 100%;
+            height: 200px;
+            background: #111;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 2rem;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--dim);
+            color: var(--text);
+            padding: 0.8rem 2rem;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        button:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0, 255, 255, 0.05);
+        }
+
+        button.active {
+            background: var(--cyan);
+            color: black;
+            border-color: var(--cyan);
+            font-weight: bold;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            width: 90%;
+            max-width: 1200px;
+            border-top: 1px solid #333;
+            padding-top: 1rem;
+            margin-bottom: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-value { color: var(--fire); }
+
+        /* Animation Classes */
+        .pulse { animation: pulse 2s infinite; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0); }
+        }
+
+        @media (max-width: 800px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Symbolic Resonance Architecture</h1>
+        <div class="subtitle">SEMANTIC INPUT // FREQUENCY DOMAIN // INTERFERENCE MATCHING</div>
+    </header>
+
+    <div class="container">
+        
+        <div class="panel">
+            <div class="panel-header">
+                <span>INPUT // 3x3 GRID</span>
+                <span>ID: RYAN_HOPF</span>
+            </div>
+            
+            <div class="grid-3x3" id="ryan-grid">
+                <div class="grid-item" data-freq="3Hz" data-label="Spectrum">🎨</div>
+                <div class="grid-item" data-freq="2Hz" data-label="Wave">🌊</div>
+                <div class="grid-item" data-freq="13Hz" data-label="Observer">👁️</div>
+                <div class="grid-item" data-freq="6Hz" data-label="Frequency">🎹</div>
+                <div class="grid-item" data-freq="5Hz" data-label="Phase Lock">🏄🏻‍♂️</div>
+                <div class="grid-item" data-freq="4Hz" data-label="Practice">🧘🏻‍♂️</div>
+                <div class="grid-item" data-freq="7Hz" data-label="Somatic">🕺</div>
+                <div class="grid-item" data-freq="21Hz" data-label="Topology">꩜</div>
+                <div class="grid-item" data-freq="1Hz" data-label="Balance">☯️</div>
+            </div>
+
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--dim); text-align: center; margin-top: 1rem;">
+                HOVER TO REVEAL FREQUENCY BANDS
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <span>OUTPUT // SIGNAL ANALYSIS</span>
+                <span id="system-state">STATE: STANDBY</span>
+            </div>
+
+            <canvas id="waveCanvas"></canvas>
+
+            <div class="controls">
+                <button id="btn-analyze" onclick="startAnalysis()">1. Analyze Self</button>
+                <button id="btn-match" onclick="startMatch()">2. Match: The Alchemist</button>
+            </div>
+
+            <div id="analysis-text" style="margin-top: 2rem; font-family: var(--font-mono); font-size: 0.85rem; color: var(--dim); line-height: 1.6;">
+                > SYSTEM READY.<br>
+                > AWAITING SEMANTIC CONVERSION...
+            </div>
+        </div>
+
+    </div>
+
+    <div class="status-bar">
+        <span>MODE: <span style="color:var(--cyan)">SUBSTRATE INDEPENDENT</span></span>
+        <span>INTERFERENCE: <span id="interference-val" class="status-value">--</span></span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        const systemState = document.getElementById('system-state');
+        const analysisText = document.getElementById('analysis-text');
+        const interferenceVal = document.getElementById('interference-val');
+
+        // Resize canvas
+        function resize() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = 200;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- PHYSICS ENGINE ---
+
+        let time = 0;
+        let mode = 'idle'; // idle, analyze, match
+
+        // Frequencies (Normalized relative to canvas width)
+        // User: Stable, Flow, High-Meta
+        const ryanFreqs = [
+            {f: 2, amp: 40}, // Wave
+            {f: 5, amp: 30}, // Surfer
+            {f: 21, amp: 10} // Spiral
+        ];
+
+        // Match: Wild, Fire, High-Energy
+        const alchemistFreqs = [
+            {f: 2.5, amp: 45}, // Fire (Syncs but shifts)
+            {f: 5.5, amp: 35}, // Burning Heart (Near Surfer but faster)
+            {f: 23, amp: 15}   // Storm (Chaos)
+        ];
+
+        function draw() {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const cy = canvas.height / 2;
+
+            ctx.lineWidth = 2;
+            time += 0.05;
+
+            // DRAW RYAN (Cyan)
+            if (mode === 'analyze' || mode === 'match') {
+                ctx.beginPath();
+                ctx.strokeStyle = '#00ffff';
+                for (let x = 0; x < canvas.width; x++) {
+                    let y = 0;
+                    // Summing Sinusoids
+                    for(let wave of ryanFreqs) {
+                        y += Math.sin((x * wave.f * 0.05) + time) * wave.amp;
+                    }
+                    ctx.lineTo(x, cy + y);
+                }
+                ctx.stroke();
+            }
+
+            // DRAW ALCHEMIST (Orange/Red)
+            if (mode === 'match') {
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(255, 69, 0, 0.8)'; // Fire Orange
+                for (let x = 0; x < canvas.width; x++) {
+                    let y = 0;
+                    for(let wave of alchemistFreqs) {
+                        // Phase shift + time offset for "Wildness"
+                        y += Math.sin((x * wave.f * 0.05) + time + 100) * wave.amp;
+                        // Add some jitter for "Storm"
+                        if(x % 5 === 0) y += (Math.random() - 0.5) * 5;
+                    }
+                    ctx.lineTo(x, cy + y);
+                }
+                ctx.stroke();
+
+                // DRAW INTERFERENCE (White - Constructive/Destructive)
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < canvas.width; x++) {
+                    let y1 = 0;
+                    for(let wave of ryanFreqs) y1 += Math.sin((x * wave.f * 0.05) + time) * wave.amp;
+                    
+                    let y2 = 0;
+                    for(let wave of alchemistFreqs) {
+                        y2 += Math.sin((x * wave.f * 0.05) + time + 100) * wave.amp;
+                        if(x % 5 === 0) y2 += (Math.random() - 0.5) * 5;
+                    }
+
+                    // The Sum
+                    ctx.lineTo(x, cy + (y1 + y2));
+                }
+                ctx.stroke();
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        // --- INTERACTIONS ---
+
+        function startAnalysis() {
+            mode = 'analyze';
+            systemState.innerHTML = "STATE: GENERATING WAVEFORM";
+            systemState.style.color = "#00ffff";
+            document.getElementById('btn-analyze').classList.add('active');
+            document.getElementById('btn-match').classList.remove('active');
+            
+            analysisText.innerHTML = `
+                > CONVERTING SEMANTICS TO PHYSICS...<br>
+                > 🌊 BASELINE DETECTED (2Hz)<br>
+                > 🏄🏻‍♂️ FLOW STATE DETECTED (5Hz)<br>
+                > ꩜ TOPOLOGY DETECTED (21Hz)<br>
+                > RESULT: STABLE COHERENT WAVEFORM GENERATED.
+            `;
+            interferenceVal.innerHTML = "--";
+        }
+
+        function startMatch() {
+            if(mode !== 'analyze') startAnalysis(); // Ensure self is loaded
+            setTimeout(() => {
+                mode = 'match';
+                systemState.innerHTML = "STATE: PHASE LOCKING";
+                systemState.style.color = "#ff4500";
+                document.getElementById('btn-match').classList.add('active');
+                
+                analysisText.innerHTML = `
+                    > TARGET ACQUIRED: "THE ALCHEMIST"<br>
+                    > DETECTED SIGNAL: 🔥 FIRE + 🌪️ STORM<br>
+                    > CALCULATING INTERFERENCE...<br>
+                    > <span style="color:#fff">CRITICAL PHASE LOCK ACHIEVED.</span><br>
+                    > STATUS: CONSTRUCTIVE CHAOS.
+                `;
+                interferenceVal.innerHTML = "HIGH AMPLITUDE (WILD)";
+            }, 500);
+        }
+
+        // Start animation loop
+        draw();
+
+    </script>
+</body>
+</html>
+
